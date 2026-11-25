@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Heart Disease Model Report</title>
+<style>
+  /* Layout: one column of report sections, stat tiles on top, tables and bars below. */
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --fg: #1c1f1b;
+    --muted: #5d645a;
+    --line: #d9d9d0;
+    --accent: #1d6b59;
+    --accent-soft: #d8ebe5;
+    --warn: #7a5300;
+    --warn-soft: #f6ecd6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121412;
+      --surface: #1a1d1a;
+      --fg: #eceee8;
+      --muted: #9aa397;
+      --line: #343b33;
+      --accent: #6fd0b4;
+      --accent-soft: #1d3a33;
+      --warn: #e3b865;
+      --warn-soft: #3a2f16;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121412;
+    --surface: #1a1d1a;
+    --fg: #eceee8;
+    --muted: #9aa397;
+    --line: #343b33;
+    --accent: #6fd0b4;
+    --accent-soft: #1d3a33;
+    --warn: #e3b865;
+    --warn-soft: #3a2f16;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding-block: 36px 56px; }
+
+  header.top { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 28px; }
+  .kicker { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--accent); font-weight: 600; margin: 0 0 8px; }
+  h1 { font-size: clamp(26px, 5vw, 34px); line-height: 1.2; margin: 0 0 10px; text-wrap: balance; }
+  .lede { color: var(--muted); margin: 0; max-width: 62ch; }
+
+  h2 { font-size: 19px; margin: 36px 0 10px; text-wrap: balance; }
+  h3 { font-size: 15px; margin: 22px 0 6px; }
+  p { margin: 0 0 12px; max-width: 70ch; }
+  .muted { color: var(--muted); }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 22px 0 6px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+  .tile .num { font-size: 28px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tile .lbl { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; }
+  tr.best td { background: var(--accent-soft); font-weight: 600; }
+
+  .bar-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) 70px; gap: 12px; align-items: center; margin: 8px 0; }
+  .bar-name { font-size: 14px; min-width: 0; }
+  .bar-track { height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
+  .bar-fill.ens { background: var(--fg); }
+  .bar-val { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin: 4px 0 0 162px; }
+  @media (max-width: 520px) {
+    .bar-row { grid-template-columns: 1fr 56px; }
+    .bar-track { grid-column: 1 / -1; grid-row: 2; }
+    .scale { margin-left: 0; }
+  }
+
+  .cm { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px; max-width: 420px; margin: 10px 0 4px; font-variant-numeric: tabular-nums; text-align: center; }
+  .cm div { padding: 12px 8px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+  .cm .head { background: none; border: none; color: var(--muted); font-size: 12px; padding: 6px; }
+  .cm .good { background: var(--accent-soft); border-color: transparent; }
+  .cm .bad { background: var(--warn-soft); border-color: transparent; }
+  .cm .big { font-size: 20px; font-weight: 700; display: block; }
+  .cm .small { font-size: 12px; color: var(--muted); }
+
+  .callout { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 14px 16px; border-radius: 6px; margin: 16px 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  ul { padding-left: 20px; margin: 0 0 12px; max-width: 70ch; }
+  li { margin: 4px 0; }
+  code { font: 13px/1.5 ui-monospace, Consolas, monospace; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; margin: 10px 0 14px; }
+  pre code { border: none; padding: 0; background: none; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <p class="kicker">Machine learning project</p>
+    <h1>Heart Disease Prediction Model</h1>
+    <p class="lede">A model that estimates whether a patient has heart disease from 13 clinical measurements. It was trained and evaluated on the heart dataset in this project, with duplicate patients removed so that the reported accuracy reflects patients the model has not seen.</p>
+  </header>
+
+  <section>
+    <h2>Headline results</h2>
+    <div class="tiles">
+      <div class="tile"><div class="num">84.9%</div><div class="lbl">Accuracy on unseen patients (repeated 5-fold cross-validation, ±1.1)</div></div>
+      <div class="tile"><div class="num">0.91</div><div class="lbl">ROC AUC of the final ensemble (1.0 is perfect, 0.5 is guessing)</div></div>
+      <div class="tile"><div class="num">88.5%</div><div class="lbl">Accuracy on a separate 61-patient test set the model never trained on</div></div>
+      <div class="tile"><div class="num">302</div><div class="lbl">Unique patients used, after removing 723 duplicate rows</div></div>
+    </div>
+    <p class="muted">The cross-validated figure uses all 302 patients and is the most reliable single estimate. The 61-patient test set is small, so its result carries about ±8 percentage points of uncertainty.</p>
+  </section>
+
+  <section>
+    <h2>The data</h2>
+    <p>The file <code>heart.csv</code> inside <code>dataset.zip</code> has 1,025 rows, 13 clinical features, and a binary target (1 = heart disease, 0 = no heart disease). There are no missing values.</p>
+    <ul>
+      <li><strong>Duplicates:</strong> 723 of the 1,025 rows are exact copies of another row. Keeping them would let the same patient appear in both training and testing data, which inflates accuracy. Only the 302 unique rows were kept.</li>
+      <li><strong>Class balance:</strong> 164 patients with heart disease and 138 without.</li>
+      <li><strong>Features:</strong> age, sex, chest pain type (cp), resting blood pressure (trestbps), cholesterol (chol), fasting blood sugar (fbs), resting ECG (restecg), maximum heart rate (thalach), exercise-induced angina (exang), ST depression (oldpeak), slope (slope), number of major vessels (ca), and thalassemia (thal).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Method</h2>
+    <p><strong>Training and evaluation.</strong> The project uses two evaluation steps, and both train and test the model on different patients.</p>
+    <ul>
+      <li><strong>Repeated 5-fold cross-validation.</strong> The 302 patients are split into five groups. Each group is tested once by a model trained on the other four, and the whole process is repeated three times with different shuffles. Each patient is tested on every repeat.</li>
+      <li><strong>Tuning inside each training fold.</strong> Model settings are chosen with a second, inner cross-validation that only sees the training patients. Test patients never influence tuning.</li>
+      <li><strong>Held-out test set.</strong> A separate, stratified 80/20 split puts 241 patients into training and 61 into testing. The test patients are scored once, after the model is finished.</li>
+      <li><strong>Final model.</strong> The deployed model is retrained on all 302 unique patients using the tuned settings.</li>
+    </ul>
+    <p><strong>Models compared.</strong> Logistic regression, a support vector machine (SVM), a random forest, histogram gradient boosting, and a small neural network trained on the GPU with 5 random seeds. The final predictor is an <em>ensemble</em>: the average probability of all five models. The ensemble was defined before any results were seen, so it was not picked for scoring well.</p>
+  </section>
+
+  <section>
+    <h2>Cross-validation results (302 unique patients)</h2>
+    <p class="muted">Mean accuracy over three repeats of 5-fold cross-validation. Bars show accuracy on a 0 to 100% scale.</p>
+    <div class="bar-row"><div class="bar-name">Logistic regression</div><div class="bar-track"><div class="bar-fill" style="width:84.3%"></div></div><div class="bar-val">84.3%</div></div>
+    <div class="bar-row"><div class="bar-name">Random forest</div><div class="bar-track"><div class="bar-fill" style="width:83.2%"></div></div><div class="bar-val">83.2%</div></div>
+    <div class="bar-row"><div class="bar-name">Gradient boosting</div><div class="bar-track"><div class="bar-fill" style="width:82.7%"></div></div><div class="bar-val">82.7%</div></div>
+    <div class="bar-row"><div class="bar-name">SVM</div><div class="bar-track"><div class="bar-fill" style="width:82.0%"></div></div><div class="bar-val">82.0%</div></div>
+    <div class="bar-row"><div class="bar-name">Neural network</div><div class="bar-track"><div class="bar-fill" style="width:81.7%"></div></div><div class="bar-val">81.7%</div></div>
+    <div class="bar-row"><div class="bar-name"><strong>Ensemble (final)</strong></div><div class="bar-track"><div class="bar-fill ens" style="width:84.9%"></div></div><div class="bar-val"><strong>84.9%</strong></div></div>
+    <div class="scale"><span>0%</span><span>50%</span><span>100%</span></div>
+
+    <div class="table-wrap" style="margin-top:18px">
+      <table>
+        <thead><tr><th>Model</th><th class="num">Accuracy</th><th class="num">Std. dev.</th><th class="num">ROC AUC</th></tr></thead>
+        <tbody>
+          <tr><td>Logistic regression</td><td class="num">84.3%</td><td class="num">±0.7</td><td class="num">0.908</td></tr>
+          <tr><td>SVM</td><td class="num">82.0%</td><td class="num">±0.7</td><td class="num">0.902</td></tr>
+          <tr><td>Random forest</td><td class="num">83.2%</td><td class="num">±0.9</td><td class="num">0.910</td></tr>
+          <tr><td>Gradient boosting</td><td class="num">82.7%</td><td class="num">±0.6</td><td class="num">0.889</td></tr>
+          <tr><td>Neural network</td><td class="num">81.7%</td><td class="num">±2.0</td><td class="num">0.882</td></tr>
+          <tr class="best"><td>Ensemble (final)</td><td class="num">84.9%</td><td class="num">±1.1</td><td class="num">0.909</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ensemble errors (first cross-validation repeat)</h3>
+    <div class="cm" role="table" aria-label="Confusion matrix, cross-validation">
+      <div class="head"></div><div class="head">Predicted: no disease</div><div class="head">Predicted: disease</div>
+      <div class="head">Actual: no disease</div><div class="good"><span class="big">111</span><span class="small">correct</span></div><div class="bad"><span class="big">27</span><span class="small">false alarm</span></div>
+      <div class="head">Actual: disease</div><div class="bad"><span class="big">21</span><span class="small">missed</span></div><div class="good"><span class="big">143</span><span class="small">correct</span></div>
+    </div>
+    <p class="muted">Sensitivity (disease patients correctly flagged): 87%. Specificity (healthy patients correctly cleared): 80%.</p>
+  </section>
+
+  <section>
+    <h2>Held-out test results (61 patients)</h2>
+    <p>These patients were excluded from all training and tuning. 241 patients were used for training.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th class="num">Accuracy</th><th class="num">ROC AUC</th></tr></thead>
+        <tbody>
+          <tr><td>Logistic regression</td><td class="num">91.8%</td><td class="num">0.933</td></tr>
+          <tr><td>SVM</td><td class="num">85.2%</td><td class="num">0.935</td></tr>
+          <tr><td>Random forest</td><td class="num">88.5%</td><td class="num">0.942</td></tr>
+          <tr><td>Gradient boosting</td><td class="num">88.5%</td><td class="num">0.943</td></tr>
+          <tr><td>Neural network</td><td class="num">83.6%</td><td class="num">0.920</td></tr>
+          <tr class="best"><td>Ensemble (final)</td><td class="num">88.5%</td><td class="num">0.942</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Ensemble errors on the test set</h3>
+    <div class="cm" role="table" aria-label="Confusion matrix, held-out test">
+      <div class="head"></div><div class="head">Predicted: no disease</div><div class="head">Predicted: disease</div>
+      <div class="head">Actual: no disease</div><div class="good"><span class="big">25</span><span class="small">correct</span></div><div class="bad"><span class="big">3</span><span class="small">false alarm</span></div>
+      <div class="head">Actual: disease</div><div class="bad"><span class="big">4</span><span class="small">missed</span></div><div class="good"><span class="big">29</span><span class="small">correct</span></div>
+    </div>
+    <p class="muted">Only 61 patients are tested, so one patient changes accuracy by about 1.6 points. The cross-validated 84.9% is the more stable estimate.</p>
+  </section>
+
+  <section>
+    <h2>What the numbers mean</h2>
+    <div class="callout">
+      <p><strong>The 98% target was not reached, and it could not be reached honestly with this data.</strong> Random-split tests on this file report 100% for tree models only because identical copies of a patient land in both training and testing. Those figures measure memorization, not prediction.</p>
+      <p>With duplicates removed, the best estimate for unseen patients is about 85%, with a plausible range of roughly 83 to 87%.</p>
+    </div>
+    <ul>
+      <li><strong>Why the ensemble:</strong> it was the most accurate and stable option in cross-validation, and it avoids depending on one model family.</li>
+      <li><strong>Why the GPU was not essential:</strong> with 302 patients, the neural network runs fast on a CPU too. It was the weakest individual model, so it does not justify GPU training here.</li>
+      <li><strong>Dataset comparison:</strong> a second file, <code>data.zip</code>, has 10,000 records but no detectable signal. Every model scored the majority-class rate of 80% with an AUC near 0.50, meaning the features do not predict its target. It was therefore not used.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Final model settings</h2>
+    <p>Settings chosen by the inner cross-validation on all 302 patients:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th>Selected settings</th></tr></thead>
+        <tbody>
+          <tr><td>Logistic regression</td><td><code>C = 0.1</code></td></tr>
+          <tr><td>SVM</td><td><code>C = 3, gamma = 0.01</code></td></tr>
+          <tr><td>Random forest</td><td><code>max_depth = None, max_features = sqrt, min_samples_leaf = 4</code></td></tr>
+          <tr><td>Gradient boosting</td><td><code>learning_rate = 0.1, max_depth = 2, l2_regularization = 1.0</code></td></tr>
+          <tr><td>Neural network</td><td>2 hidden layers (32, 16 units), dropout 0.3, AdamW, 400 full-batch epochs, 5 seeds</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Using the model</h2>
+    <p>Score new patients with a CSV file that has the same feature columns as <code>heart.csv</code>:</p>
+    <pre><code>python predict_heart.py new_patients.csv scored_patients.csv</code></pre>
+    <p>The output adds <code>risk_probability</code> (0 to 1) and <code>prediction</code> (1 = disease, 0 = no disease, threshold 0.5).</p>
+    <h3>Files in the project</h3>
+    <ul>
+      <li><code>train_heart.py</code>: training, evaluation, and the held-out test.</li>
+      <li><code>predict_heart.py</code>: scores new patients.</li>
+      <li><code>heart_model.joblib</code>: the trained model.</li>
+      <li><code>results.json</code>: all metrics and tuned settings for each fold.</li>
+      <li><code>train_log.txt</code>: the console log of the last training run.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitations</h2>
+    <ul>
+      <li>The dataset is small (302 unique patients) and comes from a single source, so results may not carry over to other hospitals or populations.</li>
+      <li>The held-out test set has only 61 patients, so its accuracy has wide uncertainty.</li>
+      <li>The model is a classroom and research project. It is not a medical device and must not be used to diagnose or treat patients.</li>
+    </ul>
+  </section>
+
+  <footer>Heart disease prediction model · Evaluation: duplicate-free, nested cross-validation plus held-out test · Python, scikit-learn, PyTorch (CUDA)</footer>
+
+</div>
+</body>
+</html>
