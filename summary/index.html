@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Heart Disease Model: Summary</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --surface: #ffffff; --fg: #1c1f1b; --muted: #5d645a;
+    --line: #d9d9d0; --accent: #1d6b59; --accent-soft: #d8ebe5;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121412; --surface: #1a1d1a; --fg: #eceee8; --muted: #9aa397;
+      --line: #343b33; --accent: #6fd0b4; --accent-soft: #1d3a33; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121412; --surface: #1a1d1a; --fg: #eceee8; --muted: #9aa397;
+    --line: #343b33; --accent: #6fd0b4; --accent-soft: #1d3a33; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 56px; }
+  a { color: var(--accent); }
+  nav.sitenav { font-size: 15px; margin: 0 0 26px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  nav.sitenav a { text-decoration: none; }
+  nav.sitenav a:hover { text-decoration: underline; }
+  nav.sitenav a[aria-current="page"] { font-weight: 700; color: var(--fg); }
+  .kicker { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--accent); font-weight: 600; margin: 0 0 8px; }
+  h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
+  h2 { font-size: 21px; margin: 40px 0 12px; text-wrap: balance; }
+  h3 { font-size: 17px; margin: 22px 0 6px; }
+  p { margin: 0 0 14px; max-width: 66ch; }
+  ul, ol { padding-left: 22px; margin: 0 0 14px; max-width: 66ch; }
+  li { margin: 6px 0; }
+  .lead { font-size: 18px; color: var(--fg); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 22px 0 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+  .stat .num { font-size: 30px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .box { background: var(--accent-soft); border-radius: 12px; padding: 16px 18px; margin: 18px 0; }
+  .box p:last-child, .box ul:last-child { margin-bottom: 0; }
+  .note { border-left: 3px solid var(--accent); background: var(--surface); padding: 14px 16px; border-radius: 6px; margin: 18px 0; }
+  .steps { display: grid; gap: 10px; margin: 14px 0 6px; padding: 0; list-style: none; max-width: none; }
+  .steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0; }
+  .steps strong { display: block; }
+  .steps span { color: var(--muted); font-size: 15px; }
+  .script { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; font-style: italic; }
+  footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav"><a href="../summary/" aria-current="page">Summary</a><a href="../report/">Report</a><a href="../predict/">Predict</a><a href="../download/">Download</a><a href="https://github.com/mhddrgr/heart">Source code</a></nav>
+
+  <p class="kicker">Summary</p>
+  <h1>Heart Disease Prediction, Explained Simply</h1>
+  <p class="lead">The model looks at 13 health measurements from a patient and estimates how likely it is that the patient has heart disease. It is a student project and is not a medical tool.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="num">85%</div><div class="lbl">of patients it had never seen were classified correctly</div></div>
+    <div class="stat"><div class="num">88.5%</div><div class="lbl">correct on a separate set of 61 patients</div></div>
+    <div class="stat"><div class="num">302</div><div class="lbl">unique patients used, after removing copies</div></div>
+  </div>
+
+  <h2>What the project did</h2>
+  <ol class="steps">
+    <li><strong>1. Cleaned the data.</strong><span>The file had 1,025 rows, but 723 were exact copies. Keeping copies would let the model see the same patient twice and look better than it is.</span></li>
+    <li><strong>2. Trained five different models.</strong><span>Logistic regression, a support vector machine, a random forest, gradient boosting, and a neural network. Each one learns patterns from patients whose outcome is known.</span></li>
+    <li><strong>3. Averaged them.</strong><span>The final answer is the average of the five. In cross-validation, averaging was more accurate than any single model.</span></li>
+    <li><strong>4. Tested on unseen patients.</strong><span>Each patient was held out while the model learned, then used to check the model. This is what makes the accuracy trustworthy.</span></li>
+  </ol>
+
+  <h2>The neural network in simple words</h2>
+  <p>Think of the neural network as a team of simple calculators stacked in layers. Each calculator looks at numbers from the layer before it, decides how much each one matters, and passes a result forward. The first layer picks up simple patterns, and the next layer combines them into more complicated ones.</p>
+  <p>Learning works like practice with feedback:</p>
+  <ol>
+    <li>It makes a guess for a patient.</li>
+    <li>It compares the guess with the known answer and measures how wrong it was.</li>
+    <li>It adjusts its internal settings slightly so the next guess is a little better.</li>
+    <li>It repeats this many times over all the training patients.</li>
+  </ol>
+  <p>Our network has about 1,400 adjustable settings. With only 302 patients, a simpler model did slightly better on its own, so the final answer uses the average of all five models.</p>
+
+  <h2>Why not 98%?</h2>
+  <div class="box">
+    <p>Some tests on this file showed 100% accuracy. Those numbers were misleading: copies of the same patient landed in both the training and testing sets, so the model was partly tested on patients it had already seen. Once the copies were removed, the honest accuracy was about 85%. We report that number.</p>
+  </div>
+
+  <h2>How to use it</h2>
+  <ul>
+    <li><strong>Try it online:</strong> open the <a href="../predict/">Predict</a> page, enter a patient's measurements or pick one of the four examples, and press Predict.</li>
+    <li><strong>Read the details:</strong> the <a href="../report/">Report</a> page has the method, results, neural network diagram, and source code.</li>
+    <li><strong>Use it in Python:</strong> the <a href="../download/">Download</a> page has the trained model and the scripts. Run <code>python predict_heart.py new_patients.csv</code> to score a file of patients.</li>
+  </ul>
+
+  <h2>Limits to mention</h2>
+  <ul>
+    <li>The data comes from 302 patients from one source, so results may not carry over to other groups.</li>
+    <li>The separate test set has only 61 patients, so its result could easily be a few points higher or lower.</li>
+    <li>It is not a medical tool. It must not be used to diagnose or treat anyone.</li>
+  </ul>
+
+  <h2>A 60-second explanation for class</h2>
+  <p class="script">"The model predicts heart disease from 13 measurements. I removed 723 duplicate rows so no patient was counted twice. I trained five models and averaged them. The neural network is a stack of simple calculators that learns by guessing, checking its error, and adjusting. It reached about 85% accuracy on patients it had never seen. That is lower than 98%, but 98% was only possible because of duplicates, so the honest result is the one I'm reporting."</p>
+
+  <footer>Heart disease prediction project Â· <a href="https://github.com/mhddrgr/heart">Source code</a></footer>
+</div>
+</body>
+</html>

@@ -83,7 +83,8 @@
 </head>
 <body>
 <div class="wrap">
-  <nav><a href="../report/">Model report</a><a href="model.json">Model file (JSON)</a><a href="https://github.com/mhddrgr/heart">Source</a></nav>
+  <nav class="sitenav"><a href="../summary/">Summary</a><a href="../report/">Report</a><a href="../predict/" aria-current="page">Predict</a><a href="../download/">Download</a><a href="https://github.com/mhddrgr/heart">Source code</a></nav>
+
 
   <h1>Heart Disease Predictor</h1>
   <p class="muted">Enter a patient's measurements to get the model's estimate of heart disease risk. It runs entirely in your browser.</p>
@@ -127,8 +128,8 @@
   <div class="card dl" style="margin-top:16px">
     <h2>Download the model</h2>
     <a href="model.json">model.json</a> (browser version, this page uses it)
-    <a href="../downloads/heart_model.joblib">heart_model.joblib</a> (Python version)
-    <p class="muted" style="margin-top:8px">Python users can run <code>python predict_heart.py new_patients.csv</code> with the scripts in the <a href="../downloads/">downloads</a> folder.</p>
+    <a href="../download/heart_model.joblib">heart_model.joblib</a> (Python version)
+    <p class="muted" style="margin-top:8px">Python users can run <code>python predict_heart.py new_patients.csv</code> with the scripts on the <a href="../download/">download</a> page.</p>
   </div>
 
   <footer>Ensemble of logistic regression, SVM, random forest, gradient boosting and a neural network. Trained on 302 unique patients from heart.csv.</footer>

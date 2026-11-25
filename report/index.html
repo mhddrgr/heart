@@ -122,13 +122,15 @@
   details summary { cursor: pointer; padding: 10px 14px; font-weight: 600; }
   details pre { margin: 0; border: none; border-top: 1px solid var(--line); border-radius: 0 0 10px 10px;
                 max-height: 560px; overflow: auto; }
-  nav.sitenav { font-size: 14px; margin: 0 0 18px; }
-  nav.sitenav a { margin-right: 14px; }
+  nav.sitenav { font-size: 14px; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  nav.sitenav a { color: var(--accent); }
+  nav.sitenav a[aria-current="page"] { font-weight: 700; color: var(--fg); }
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav class="sitenav"><a href="../">Home</a><a href="../predict/">Try the predictor</a><a href="https://github.com/mhddrgr/heart">Source code</a></nav>
+  <nav class="sitenav"><a href="../summary/">Summary</a><a href="../report/" aria-current="page">Report</a><a href="../predict/">Predict</a><a href="../download/">Download</a><a href="https://github.com/mhddrgr/heart">Source code</a></nav>
+
 
   <header class="top">
     <p class="kicker">Machine learning project</p>

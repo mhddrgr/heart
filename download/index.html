@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download</title>
+<style>
+  :root { --bg: #f6f5f1; --surface: #ffffff; --fg: #1c1f1b; --muted: #5d645a; --line: #d9d9d0; --accent: #1d6b59; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #121412; --surface: #1a1d1a; --fg: #eceee8; --muted: #9aa397; --line: #343b33; --accent: #6fd0b4; color-scheme: dark; } }
+  :root[data-theme="dark"] { --bg: #121412; --surface: #1a1d1a; --fg: #eceee8; --muted: #9aa397; --line: #343b33; --accent: #6fd0b4; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 56px; }
+  a { color: var(--accent); }
+  nav.sitenav { font-size: 15px; margin: 0 0 26px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  nav.sitenav a { text-decoration: none; }
+  nav.sitenav a[aria-current="page"] { font-weight: 700; color: var(--fg); }
+  h1 { font-size: 30px; margin: 0 0 10px; }
+  .file { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .file a { font-weight: 600; font-size: 16px; }
+  .file p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+  code { font: 14px ui-monospace, Consolas, monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav"><a href="../summary/">Summary</a><a href="../report/">Report</a><a href="../predict/">Predict</a><a href="../download/" aria-current="page">Download</a><a href="https://github.com/mhddrgr/heart">Source code</a></nav>
+  <h1>Download</h1>
+  <p>The trained model and the Python scripts. The browser predictor on the <a href="../predict/">Predict</a> page uses <code>model.json</code>, which is also linked here.</p>
+
+  <div class="file"><a href="heart_model.joblib">heart_model.joblib</a><p>The trained model for Python (2.3 MB).</p></div>
+  <div class="file"><a href="../predict/model.json">model.json</a><p>The same model in browser-readable form (1.1 MB).</p></div>
+  <div class="file"><a href="predict_heart.py">predict_heart.py</a><p>Scores a CSV of patients and flags rows with bad values.</p></div>
+  <div class="file"><a href="train_heart.py">train_heart.py</a><p>Trains and evaluates the model.</p></div>
+  <div class="file"><a href="export_web_model.py">export_web_model.py</a><p>Exports the model to <code>model.json</code> for the browser.</p></div>
+  <div class="file"><a href="test_heart.py">test_heart.py</a><p>Automated checks. Run them with the command below.</p></div>
+  <div class="file"><a href="requirements.txt">requirements.txt</a><p>The exact library versions the model was built with.</p></div>
+  <div class="file"><a href="results.json">results.json</a><p>All metrics and the tuned settings for each fold.</p></div>
+
+  <h2>Run it in Python</h2>
+  <p>Install the libraries, then score a file of patients. The CSV needs the 13 feature columns from heart.csv.</p>
+<pre><code>pip install -r requirements.txt
+python predict_heart.py new_patients.csv
+python -m unittest test_heart -v</code></pre>
+  <p>To retrain, put <code>dataset.zip</code> (containing <code>heart.csv</code>) in the same folder and run <code>python train_heart.py</code>.</p>
+</div>
+</body>
+</html>
