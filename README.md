@@ -1,11 +1,13 @@
 # Heart Disease Prediction Model
 
-A machine learning model that estimates heart disease risk from 13 clinical measurements. Trained and evaluated on 302 unique patients from the heart dataset (1,025 rows, with 723 duplicate rows removed before any split).
+A machine learning model that estimates heart disease risk from 13 clinical measurements, trained and tested on 302 unique patients.
 
-**Live pages**
+**Pages**
 
-- [Model report](https://mhddrgr.github.io/heart-disease-report/): results, method, architecture, and code
-- [Interactive predictor](https://mhddrgr.github.io/heart-disease-report/predict.html): enter a patient and see each model's risk estimate. Runs in the browser.
+- Home: https://mhddrgr.github.io/heart/
+- Model report: https://mhddrgr.github.io/heart/report/
+- Interactive predictor: https://mhddrgr.github.io/heart/predict/
+- Downloads (Python model and scripts): https://mhddrgr.github.io/heart/downloads/
 
 **Results**
 
@@ -14,24 +16,11 @@ A machine learning model that estimates heart disease risk from 13 clinical meas
 | Repeated 5-fold cross-validation (final ensemble) | 84.9% ± 1.1 | 0.909 |
 | Separate 80/20 held-out test (61 patients) | 88.5% | 0.942 |
 
-The model is for a class or research project. It is not a medical device.
+This is a student project. It is not a medical tool.
 
-## Files
+## Run in Python
 
-| File | Purpose |
-|---|---|
-| `index.html` | The model report |
-| `predict.html`, `heart_model.js` | Interactive browser predictor |
-| `model.json` | The trained model in browser-readable form |
-| `heart_model.joblib` | The trained model for Python |
-| `train_heart.py` | Trains the model, runs both evaluations, writes `results.json` |
-| `export_web_model.py` | Exports the model to `model.json` |
-| `predict_heart.py` | Scores a CSV of patients with the Python model |
-| `results.json` | All metrics and tuned settings |
-
-## Run it in Python
-
-Put `dataset.zip` (containing `heart.csv`) in the same folder, then:
+Put `dataset.zip` (containing `heart.csv`) in the same folder as the scripts, then:
 
 ```
 python train_heart.py                       # train and evaluate
