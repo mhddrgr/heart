@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heart Disease Predictor</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --surface: #ffffff; --fg: #1c1f1b; --muted: #5d645a;
+    --line: #d9d9d0; --accent: #1d6b59; --accent-soft: #d8ebe5;
+    --warn: #7a5300; --warn-soft: #f6ecd6; --bad: #9b2c2c; --bad-soft: #f6dcdc;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121412; --surface: #1a1d1a; --fg: #eceee8; --muted: #9aa397;
+      --line: #343b33; --accent: #6fd0b4; --accent-soft: #1d3a33;
+      --warn: #e3b865; --warn-soft: #3a2f16; --bad: #f09a9a; --bad-soft: #3d2222;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121412; --surface: #1a1d1a; --fg: #eceee8; --muted: #9aa397;
+    --line: #343b33; --accent: #6fd0b4; --accent-soft: #1d3a33;
+    --warn: #e3b865; --warn-soft: #3a2f16; --bad: #f09a9a; --bad-soft: #3d2222;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding-block: 28px 48px; }
+  h1 { font-size: clamp(24px, 4.5vw, 30px); margin: 0 0 6px; text-wrap: balance; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  p { margin: 0 0 10px; max-width: 70ch; }
+  .muted { color: var(--muted); font-size: 14px; }
+  nav { font-size: 14px; margin-bottom: 18px; }
+  nav a { color: var(--accent); margin-right: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; min-width: 0; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 14px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  input, select {
+    width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0;
+  }
+  input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .field-err { color: var(--bad); font-size: 12px; min-height: 0; }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  button {
+    font: inherit; font-size: 14px; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 600; }
+  button.ghost { background: transparent; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+  .verdict { border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .verdict.pos { background: var(--bad-soft); color: var(--bad); }
+  .verdict.neg { background: var(--accent-soft); color: var(--accent); }
+  .verdict .big { font-size: 22px; font-weight: 700; }
+  .verdict .sub { font-size: 14px; color: var(--fg); margin-top: 4px; }
+
+  .bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 62px; gap: 4px 10px; align-items: center; margin: 8px 0; }
+  .bar-name { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+  .bar-track { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 5px; }
+  .bar-fill.ens { background: var(--fg); }
+  .bar-val { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+
+  .note { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 12px 14px; border-radius: 6px; font-size: 13px; margin-top: 14px; }
+  .status { font-size: 14px; color: var(--muted); margin-bottom: 12px; min-height: 1.4em; }
+  .hidden { display: none !important; }
+  .dl a { display: inline-block; margin: 4px 14px 4px 0; color: var(--accent); }
+  footer { margin-top: 28px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="index.html">Model report</a><a href="model.json">Model file (JSON)</a><a href="https://github.com/mhddrgr/heart-disease-report">Source</a></nav>
+
+  <h1>Heart Disease Predictor</h1>
+  <p class="muted">Enter a patient's measurements to get the model's estimate of heart disease risk. It runs entirely in your browser.</p>
+  <div class="status" id="status">Loading model...</div>
+
+  <div class="layout">
+    <section class="card">
+      <h2>Patient measurements</h2>
+      <div class="examples" aria-label="Example patients">
+        <button type="button" class="ghost" data-ex="0">Example A</button>
+        <button type="button" class="ghost" data-ex="1">Example B</button>
+        <button type="button" class="ghost" data-ex="2">Example C</button>
+        <button type="button" class="ghost" data-ex="3">Example D</button>
+      </div>
+      <form id="form" novalidate>
+        <div class="fields" id="fields"></div>
+        <div class="actions">
+          <button type="submit" class="primary" id="predict-btn">Predict</button>
+          <button type="button" class="ghost" id="reset-btn">Clear</button>
+        </div>
+      </form>
+      <p class="muted" style="margin-top:14px">Examples come from the training data, so the model has seen them. Use them to see how the tool works, not to measure accuracy.</p>
+    </section>
+
+    <section class="card">
+      <h2>Result</h2>
+      <div id="empty" class="muted">Fill in the form or pick an example, then press Predict.</div>
+      <div id="result" class="hidden">
+        <div class="verdict" id="verdict">
+          <div class="big" id="verdict-big"></div>
+          <div class="sub" id="verdict-sub"></div>
+        </div>
+        <div id="bars"></div>
+      </div>
+      <div class="note">
+        This is a student project, not a medical tool. It must not be used to diagnose or make treatment decisions. Talk to a doctor about any heart concerns.
+      </div>
+    </section>
+  </div>
+
+  <div class="card dl" style="margin-top:16px">
+    <h2>Download the model</h2>
+    <a href="model.json">model.json</a> (browser version, this page uses it)
+    <a href="heart_model.joblib">heart_model.joblib</a> (Python version)
+    <p class="muted" style="margin-top:8px">Python users can run <code>python predict_heart.py new_patients.csv</code> with the code in the repository's <code>python</code> folder.</p>
+  </div>
+
+  <footer>Ensemble of logistic regression, SVM, random forest, gradient boosting and a neural network. Trained on 302 unique patients from heart.csv.</footer>
+</div>
+
+<script src="heart_model.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Field definitions. Codes follow heart.csv. Labels follow the standard
+  // coding for this dataset; check them against your course's data sheet.
+  var FIELDS = [
+    { id: "age", label: "Age (years)", type: "number", min: 1, max: 120, step: 1 },
+    { id: "sex", label: "Sex", type: "select", options: [[1, "Male"], [0, "Female"]] },
+    { id: "cp", label: "Chest pain type", type: "select", options: [[0, "Typical angina"], [1, "Atypical angina"], [2, "Non-anginal pain"], [3, "Asymptomatic"]] },
+    { id: "trestbps", label: "Resting blood pressure (mm Hg)", type: "number", min: 60, max: 260, step: 1 },
+    { id: "chol", label: "Serum cholesterol (mg/dl)", type: "number", min: 80, max: 700, step: 1 },
+    { id: "fbs", label: "Fasting blood sugar over 120 mg/dl", type: "select", options: [[0, "No"], [1, "Yes"]] },
+    { id: "restecg", label: "Resting ECG", type: "select", options: [[0, "Normal"], [1, "ST-T wave abnormality"], [2, "Left ventricular hypertrophy"]] },
+    { id: "thalach", label: "Maximum heart rate reached", type: "number", min: 50, max: 250, step: 1 },
+    { id: "exang", label: "Chest pain during exercise", type: "select", options: [[0, "No"], [1, "Yes"]] },
+    { id: "oldpeak", label: "ST depression from exercise (oldpeak)", type: "number", min: 0, max: 10, step: 0.1 },
+    { id: "slope", label: "Slope of peak exercise ST segment", type: "select", options: [[0, "Upsloping"], [1, "Flat"], [2, "Downsloping"]] },
+    { id: "ca", label: "Major vessels colored by fluoroscopy", type: "select", options: [[0, "0"], [1, "1"], [2, "2"], [3, "3"], [4, "4"]] },
+    { id: "thal", label: "Thalassemia code", type: "select", options: [[0, "0 (unknown)"], [1, "1 (normal)"], [2, "2 (fixed defect)"], [3, "3 (reversible defect)"]] }
+  ];
+
+  // Examples taken from heart.csv (these patients were in the training data).
+  var EXAMPLES = [
+    { name: "A", actual: "heart disease", row: { age: 58, sex: 0, cp: 0, trestbps: 100, chol: 248, fbs: 0, restecg: 0, thalach: 122, exang: 0, oldpeak: 1.0, slope: 1, ca: 0, thal: 2 } },
+    { name: "B", actual: "heart disease", row: { age: 71, sex: 0, cp: 0, trestbps: 112, chol: 149, fbs: 0, restecg: 1, thalach: 125, exang: 0, oldpeak: 1.6, slope: 1, ca: 0, thal: 2 } },
+    { name: "C", actual: "no heart disease", row: { age: 52, sex: 1, cp: 0, trestbps: 125, chol: 212, fbs: 0, restecg: 1, thalach: 168, exang: 0, oldpeak: 1.0, slope: 2, ca: 2, thal: 3 } },
+    { name: "D", actual: "no heart disease", row: { age: 53, sex: 1, cp: 0, trestbps: 140, chol: 203, fbs: 1, restecg: 0, thalach: 155, exang: 1, oldpeak: 3.1, slope: 0, ca: 0, thal: 3 } }
+  ];
+
+  var MODEL_NAMES = {
+    logreg: "Logistic regression",
+    svm: "Support vector machine",
+    random_forest: "Random forest",
+    hist_gb: "Gradient boosting",
+    mlp: "Neural network",
+    ensemble: "Ensemble (final answer)"
+  };
+
+  var model = null;
+  var form = document.getElementById("form");
+  var fieldsBox = document.getElementById("fields");
+  var status = document.getElementById("status");
+
+  function buildForm() {
+    FIELDS.forEach(function (f) {
+      var wrap = document.createElement("div");
+      var label = document.createElement("label");
+      label.htmlFor = f.id;
+      label.textContent = f.label;
+      var input;
+      if (f.type === "select") {
+        input = document.createElement("select");
+        var blank = document.createElement("option");
+        blank.value = "";
+        blank.textContent = "Choose...";
+        input.appendChild(blank);
+        f.options.forEach(function (o) {
+          var opt = document.createElement("option");
+          opt.value = String(o[0]);
+          opt.textContent = o[1];
+          input.appendChild(opt);
+        });
+      } else {
+        input = document.createElement("input");
+        input.type = "number";
+        input.min = f.min;
+        input.max = f.max;
+        input.step = f.step;
+        input.inputMode = "decimal";
+      }
+      input.id = f.id;
+      input.name = f.id;
+      var err = document.createElement("div");
+      err.className = "field-err";
+      err.id = f.id + "-err";
+      wrap.appendChild(label);
+      wrap.appendChild(input);
+      wrap.appendChild(err);
+      fieldsBox.appendChild(wrap);
+    });
+  }
+
+  function setForm(row) {
+    FIELDS.forEach(function (f) {
+      document.getElementById(f.id).value = String(row[f.id]);
+    });
+    clearErrors();
+  }
+
+  function clearForm() {
+    FIELDS.forEach(function (f) { document.getElementById(f.id).value = ""; });
+    clearErrors();
+  }
+
+  function clearErrors() {
+    FIELDS.forEach(function (f) { document.getElementById(f.id + "-err").textContent = ""; });
+  }
+
+  // Returns the patient row, or null if any value is missing or out of range.
+  function readForm() {
+    clearErrors();
+    var row = {};
+    var ok = true;
+    FIELDS.forEach(function (f) {
+      var raw = document.getElementById(f.id).value.trim();
+      var err = document.getElementById(f.id + "-err");
+      if (raw === "") {
+        err.textContent = "Please fill this in.";
+        ok = false;
+        return;
+      }
+      var value = Number(raw);
+      if (!isFinite(value)) {
+        err.textContent = "Enter a number.";
+        ok = false;
+        return;
+      }
+      if (f.type === "number" && (value < f.min || value > f.max)) {
+        err.textContent = "Expected " + f.min + " to " + f.max + ".";
+        ok = false;
+        return;
+      }
+      row[f.id] = value;
+    });
+    return ok ? row : null;
+  }
+
+  function pct(p) { return (p * 100).toFixed(1) + "%"; }
+
+  function showResult(row) {
+    var probs = HeartModel.predict(model, row);
+    var ens = probs.ensemble;
+    var positive = ens >= 0.5;
+
+    document.getElementById("empty").classList.add("hidden");
+    document.getElementById("result").classList.remove("hidden");
+
+    var verdict = document.getElementById("verdict");
+    verdict.className = "verdict " + (positive ? "pos" : "neg");
+    document.getElementById("verdict-big").textContent =
+      positive ? "Heart disease predicted" : "No heart disease predicted";
+    document.getElementById("verdict-sub").textContent =
+      "Estimated probability of heart disease: " + pct(ens) +
+      ". The cut-off is 50%.";
+
+    var bars = document.getElementById("bars");
+    bars.innerHTML = "";
+    ["logreg", "svm", "random_forest", "hist_gb", "mlp", "ensemble"].forEach(function (key) {
+      var p = probs[key];
+      var row = document.createElement("div");
+      row.className = "bar-row";
+      var name = document.createElement("div");
+      name.className = "bar-name";
+      name.textContent = MODEL_NAMES[key];
+      var track = document.createElement("div");
+      track.className = "bar-track";
+      var fill = document.createElement("div");
+      fill.className = "bar-fill" + (key === "ensemble" ? " ens" : "");
+      fill.style.width = (p * 100).toFixed(1) + "%";
+      track.appendChild(fill);
+      var val = document.createElement("div");
+      val.className = "bar-val";
+      val.textContent = pct(p);
+      row.appendChild(name);
+      row.appendChild(track);
+      row.appendChild(val);
+      bars.appendChild(row);
+    });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!model) return;
+    var row = readForm();
+    if (row) showResult(row);
+  });
+
+  document.getElementById("reset-btn").addEventListener("click", function () {
+    clearForm();
+    document.getElementById("result").classList.add("hidden");
+    document.getElementById("empty").classList.remove("hidden");
+  });
+
+  document.querySelectorAll("[data-ex]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var ex = EXAMPLES[Number(btn.getAttribute("data-ex"))];
+      setForm(ex.row);
+      if (model) showResult(ex.row);
+      status.textContent = "Example " + ex.name + " (dataset label: " + ex.actual + ").";
+    });
+  });
+
+  buildForm();
+
+  fetch("model.json")
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function (m) {
+      model = m;
+      status.textContent = "Model loaded. Enter a patient or pick an example.";
+    })
+    .catch(function () {
+      status.textContent = "Could not load the model file. Open this page through its web address, not as a local file.";
+    });
+})();
+</script>
+</body>
+</html>
