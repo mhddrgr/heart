@@ -1,0 +1,8 @@
+# Versions the model was trained and tested with (Python 3.11).
+scikit-learn==1.8.0
+pandas==2.3.3
+numpy==2.4.6
+joblib==1.5.2
+# PyTorch is optional for prediction; it is used for the neural network during training.
+# Install the CUDA build from https://pytorch.org if you want GPU training.
+torch==2.8.0
