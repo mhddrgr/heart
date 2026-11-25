@@ -90,11 +90,6 @@
   </ol>
   <p>Our network has about 1,400 adjustable settings. With only 302 patients, a simpler model did slightly better on its own, so the final answer uses the average of all five models.</p>
 
-  <h2>Why not 98%?</h2>
-  <div class="box">
-    <p>Some tests on this file showed 100% accuracy. Those numbers were misleading: copies of the same patient landed in both the training and testing sets, so the model was partly tested on patients it had already seen. Once the copies were removed, the honest accuracy was about 85%. We report that number.</p>
-  </div>
-
   <h2>How to use it</h2>
   <ul>
     <li><strong>Try it online:</strong> open the <a href="../predict/">Predict</a> page, enter a patient's measurements or pick one of the four examples, and press Predict.</li>
@@ -110,7 +105,7 @@
   </ul>
 
   <h2>A 60-second explanation for class</h2>
-  <p class="script">"The model predicts heart disease from 13 measurements. I removed 723 duplicate rows so no patient was counted twice. I trained five models and averaged them. The neural network is a stack of simple calculators that learns by guessing, checking its error, and adjusting. It reached about 85% accuracy on patients it had never seen. That is lower than 98%, but 98% was only possible because of duplicates, so the honest result is the one I'm reporting."</p>
+  <p class="script">"The model predicts heart disease from 13 measurements. I removed 723 duplicate rows so no patient was counted twice. I trained five models and averaged them. The neural network is a stack of simple calculators that learns by guessing, checking its error, and adjusting. It reached about 85% accuracy on patients it had never seen. That is the honest result, measured on patients the model never saw."</p>
 
   <footer>Heart disease prediction project Â· <a href="https://github.com/mhddrgr/heart">Source code</a></footer>
 </div>
